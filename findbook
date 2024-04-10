@@ -1,0 +1,29 @@
+#!/bin/bash
+
+
+function editscript(){
+scriptname=$(realpath "$0" 2>/dev/null)
+  local script path; script="${scriptname##*/}"; path="${scriptname%/*}"; swp="$path/.$script.swp"
+     if [[ ! -e "$swp" ]]; then printf "\n\n%s\n\n" "$swp"; (/usr/bin/nano "$scriptname"); exit
+     else printf "\n%s is already being edited.\n%s exists; try fg or look in another window.\n" "$scriptname" "$swp"; exit;
+  fi; }
+
+
+[[ "$1" == @(edit|e|nano) ]] && editscript
+
+printf '\n'
+
+
+lines=$(tput lines 2> /dev/null) || lines=$(tput -T xterm-256color lines)
+readarray -t founddirs < <(echo dirctory; find /library/books -type d -ipath "*$**" -printf '%P\n')
+
+#findauthor search terms: find /library/books/ -ipath "*$**/*" -type d -printf '%P\n')
+if [[ "$1" == "-l" ]]
+  then
+   find /library/books/ -type d -ipath "*${*:2}*" -printf '%P\n'
+  else
+    n="${#founddirs[@]}"
+    c=$(gum choose --header.bold "${founddirs[@]:1:$n}" --cursor.italic --height=$(("$lines"-"$lines"/10-1)) --header="${founddirs[0]}" --header.padding="0 2")
+    echo "$c"
+    cd "/library/books/$c"
+fi
